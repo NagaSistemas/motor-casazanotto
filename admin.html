@@ -146,11 +146,8 @@
     </div>
 
     <script>
-        const API_BASE = 'https://artaxnet.com/pms-api/v1';
-        const HEADERS = {
-            'ClientId': 'client_id_960o8MMPfTi3E2PVVCZ7S0RRgCkX',
-            'ClientSecret': 'client_secret_9605Y3wx0CNYQZdGvqh3PjH'
-        };
+        const API_BASE = 'api-proxy.php?endpoint=';
+        const HEADERS = {};
 
         const STATUS_NAMES = {
             1: 'Pré-Reserva',
@@ -175,7 +172,7 @@
             content.innerHTML = '<div class="loading">Carregando reservas...</div>';
 
             try {
-                const response = await fetch(`${API_BASE}/bookings`, { headers: HEADERS });
+                const response = await fetch(`${API_BASE}bookings`, { headers: HEADERS });
                 const data = await response.json();
 
                 if (response.ok && data) {
@@ -259,7 +256,7 @@
                     kids: 0
                 });
 
-                const response = await fetch(`${API_BASE}/rooms/availability?${params}`, { headers: HEADERS });
+                const response = await fetch(`${API_BASE}rooms/availability&${params}`, { headers: HEADERS });
                 const data = await response.json();
 
                 if (response.ok) {
@@ -289,7 +286,7 @@
             if (!confirm('Tem certeza que deseja cancelar esta reserva?')) return;
 
             try {
-                const response = await fetch(`${API_BASE}/booking/${id}/cancel`, {
+                const response = await fetch(`${API_BASE}booking/${id}/cancel`, {
                     method: 'POST',
                     headers: HEADERS
                 });
@@ -310,7 +307,7 @@
             document.getElementById('reservaModal').style.display = 'block';
 
             try {
-                const response = await fetch(`${API_BASE}/booking/${id}`, { headers: HEADERS });
+                const response = await fetch(`${API_BASE}booking/${id}`, { headers: HEADERS });
                 const data = await response.json();
 
                 if (response.ok && data) {
@@ -358,7 +355,7 @@
                 if (dataFim) params.append('end_date', dataFim);
                 if (status) params.append('status', status);
                 
-                const url = `${API_BASE}/bookings${params.toString() ? '?' + params.toString() : ''}`;
+                const url = `${API_BASE}bookings${params.toString() ? '&' + params.toString() : ''}`;
                 const response = await fetch(url, { headers: HEADERS });
                 const data = await response.json();
 
@@ -391,7 +388,7 @@
                     end_date: fim
                 });
 
-                const response = await fetch(`${API_BASE}/bookings?${params}`, { headers: HEADERS });
+                const response = await fetch(`${API_BASE}bookings&${params}`, { headers: HEADERS });
                 const data = await response.json();
 
                 if (response.ok && data) {
