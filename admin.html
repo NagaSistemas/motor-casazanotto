@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casa Zanotto - Painel Administrativo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+        
+        .sidebar { position: fixed; left: 0; top: 0; width: 250px; height: 100vh; background: #2c3e50; color: white; padding: 20px 0; }
+        .sidebar h2 { text-align: center; margin-bottom: 30px; color: #db8b28; }
+        .sidebar ul { list-style: none; }
+        .sidebar li { margin: 10px 0; }
+        .sidebar a { color: white; text-decoration: none; padding: 12px 20px; display: block; transition: 0.3s; }
+        .sidebar a:hover, .sidebar a.active { background: #db8b28; }
+        
+        .main { margin-left: 250px; padding: 20px; }
+        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .header h1 { color: #2c3e50; }
+        
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; }
+        .stat-number { font-size: 2em; font-weight: bold; color: #db8b28; }
+        .stat-label { color: #666; margin-top: 5px; }
+        
+        .content-section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: none; }
+        .content-section.active { display: block; }
+        
+        .filters { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filters input, .filters select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; }
+        .btn { background: #db8b28; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn:hover { background: #a86a1d; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #c82333; }
+        
+        .table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .table th, .table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        .table th { background: #f8f9fa; font-weight: 600; }
+        .table tr:hover { background: #f8f9fa; }
+        
+        .status { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .status-1 { background: #fff3cd; color: #856404; }
+        .status-2 { background: #d4edda; color: #155724; }
+        .status-3 { background: #cce5ff; color: #004085; }
+        .status-4 { background: #e2e3e5; color: #383d41; }
+        .status-5 { background: #f8d7da; color: #721c24; }
+        .status-6 { background: #ffeaa7; color: #6c5ce7; }
+        
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+        .modal-content { background: white; margin: 5% auto; padding: 20px; width: 80%; max-width: 600px; border-radius: 8px; }
+        .close { float: right; font-size: 28px; cursor: pointer; }
+        
+        .loading { text-align: center; padding: 40px; color: #666; }
+        .error { color: #dc3545; padding: 20px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Casa Zanotto</h2>
+        <ul>
+            <li><a href="#" onclick="showSection('dashboard')" class="active">Dashboard</a></li>
+            <li><a href="#" onclick="showSection('reservas')">Reservas</a></li>
+            <li><a href="#" onclick="showSection('disponibilidade')">Disponibilidade</a></li>
+            <li><a href="#" onclick="showSection('relatorios')">Relatórios</a></li>
+        </ul>
+    </div>
+
+    <div class="main">
+        <div class="header">
+            <h1>Painel Administrativo</h1>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalReservas">-</div>
+                <div class="stat-label">Total Reservas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="reservasHoje">-</div>
+                <div class="stat-label">Reservas Hoje</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="checkinsHoje">-</div>
+                <div class="stat-label">Check-ins Hoje</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="checkoutsHoje">-</div>
+                <div class="stat-label">Check-outs Hoje</div>
+            </div>
+        </div>
+
+        <div id="dashboard" class="content-section active">
+            <h2>Dashboard</h2>
+            <p>Bem-vindo ao painel administrativo da Casa Zanotto.</p>
+        </div>
+
+        <div id="reservas" class="content-section">
+            <h2>Gerenciar Reservas</h2>
+            <div class="filters">
+                <input type="date" id="dataInicio" placeholder="Data Início">
+                <input type="date" id="dataFim" placeholder="Data Fim">
+                <select id="statusFilter">
+                    <option value="">Todos os Status</option>
+                    <option value="1">Pré-Reserva</option>
+                    <option value="2">Confirmado</option>
+                    <option value="3">Hospedado</option>
+                    <option value="4">Check-out</option>
+                    <option value="5">Cancelado</option>
+                    <option value="6">No Show</option>
+                </select>
+                <button class="btn" onclick="filtrarReservas()">Filtrar</button>
+                <button class="btn" onclick="carregarReservas()">Atualizar</button>
+            </div>
+            <div id="reservasContent">
+                <div class="loading">Carregando reservas...</div>
+            </div>
+        </div>
+
+        <div id="disponibilidade" class="content-section">
+            <h2>Verificar Disponibilidade</h2>
+            <div class="filters">
+                <input type="date" id="checkAvailDate">
+                <button class="btn" onclick="verificarDisponibilidade()">Verificar</button>
+            </div>
+            <div id="disponibilidadeContent"></div>
+        </div>
+
+        <div id="relatorios" class="content-section">
+            <h2>Relatórios</h2>
+            <div class="filters">
+                <input type="date" id="relatorioInicio">
+                <input type="date" id="relatorioFim">
+                <button class="btn" onclick="gerarRelatorio()">Gerar Relatório</button>
+            </div>
+            <div id="relatorioContent"></div>
+        </div>
+    </div>
+
+    <div id="reservaModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="fecharModal()">&times;</span>
+            <h2>Detalhes da Reserva</h2>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://artaxnet.com/pms-api/v1';
+        const HEADERS = {
+            'ClientId': 'client_id_960o8MMPfTi3E2PVVCZ7S0RRgCkX',
+            'ClientSecret': 'client_secret_9605Y3wx0CNYQZdGvqh3PjH'
+        };
+
+        const STATUS_NAMES = {
+            1: 'Pré-Reserva',
+            2: 'Confirmado',
+            3: 'Hospedado',
+            4: 'Check-out',
+            5: 'Cancelado',
+            6: 'No Show'
+        };
+
+        function showSection(section) {
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+            document.getElementById(section).classList.add('active');
+            event.target.classList.add('active');
+
+            if (section === 'reservas') carregarReservas();
+        }
+
+        async function carregarReservas() {
+            const content = document.getElementById('reservasContent');
+            content.innerHTML = '<div class="loading">Carregando reservas...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/bookings`, { headers: HEADERS });
+                const data = await response.json();
+
+                if (response.ok && data) {
+                    const reservas = Array.isArray(data) ? data : (data.bookings || []);
+                    exibirReservas(reservas);
+                    atualizarStats(reservas);
+                } else {
+                    content.innerHTML = '<div class="error">Erro ao carregar reservas</div>';
+                }
+            } catch (error) {
+                content.innerHTML = '<div class="error">Erro de conexão</div>';
+            }
+        }
+
+        function exibirReservas(reservas) {
+            const content = document.getElementById('reservasContent');
+            
+            if (!reservas.length) {
+                content.innerHTML = '<p>Nenhuma reserva encontrada.</p>';
+                return;
+            }
+
+            let html = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Hóspede</th>
+                            <th>Check-in</th>
+                            <th>Check-out</th>
+                            <th>Status</th>
+                            <th>Valor</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            reservas.forEach(reserva => {
+                html += `
+                    <tr>
+                        <td>${reserva.id}</td>
+                        <td>${(reserva.guest?.first_name || '') + ' ' + (reserva.guest?.last_name || '') || reserva.guest_name || 'N/A'}</td>
+                        <td>${formatDate(reserva.arrival_date)}</td>
+                        <td>${formatDate(reserva.departure_date)}</td>
+                        <td><span class="status status-${reserva.status}">${STATUS_NAMES[reserva.status]}</span></td>
+                        <td>R$ ${parseFloat(reserva.total || 0).toFixed(2).replace('.', ',')}</td>
+                        <td>
+                            <button class="btn" onclick="verDetalhes(${reserva.id})">Ver</button>
+                            ${reserva.status === 2 ? `<button class="btn btn-danger" onclick="cancelarReserva(${reserva.id})">Cancelar</button>` : ''}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            content.innerHTML = html;
+        }
+
+        function atualizarStats(reservas) {
+            const hoje = new Date().toISOString().split('T')[0];
+            
+            document.getElementById('totalReservas').textContent = reservas.length;
+            document.getElementById('reservasHoje').textContent = reservas.filter(r => r.created_at?.startsWith(hoje)).length;
+            document.getElementById('checkinsHoje').textContent = reservas.filter(r => r.arrival_date === hoje).length;
+            document.getElementById('checkoutsHoje').textContent = reservas.filter(r => r.departure_date === hoje).length;
+        }
+
+        async function verificarDisponibilidade() {
+            const date = document.getElementById('checkAvailDate').value;
+            if (!date) return;
+
+            const content = document.getElementById('disponibilidadeContent');
+            content.innerHTML = '<div class="loading">Verificando disponibilidade...</div>';
+
+            try {
+                const params = new URLSearchParams({
+                    arrival_date: date,
+                    departure_date: date,
+                    adults: 2,
+                    kids: 0
+                });
+
+                const response = await fetch(`${API_BASE}/rooms/availability?${params}`, { headers: HEADERS });
+                const data = await response.json();
+
+                if (response.ok) {
+                    let html = '<h3>Quartos Disponíveis</h3>';
+                    
+                    if (data.rooms && Object.keys(data.rooms).length > 0) {
+                        html += '<table class="table"><thead><tr><th>Quarto</th><th>Disponível</th><th>Preço</th></tr></thead><tbody>';
+                        
+                        for (const [categoryId, ratePlans] of Object.entries(data.rooms)) {
+                            for (const [ratePlanId, room] of Object.entries(ratePlans)) {
+                                html += `<tr><td>${room.room_name}</td><td>${room.allots}</td><td>R$ ${room.price}</td></tr>`;
+                            }
+                        }
+                        html += '</tbody></table>';
+                    } else {
+                        html += '<p>Nenhum quarto disponível para esta data.</p>';
+                    }
+                    
+                    content.innerHTML = html;
+                }
+            } catch (error) {
+                content.innerHTML = '<div class="error">Erro ao verificar disponibilidade</div>';
+            }
+        }
+
+        async function cancelarReserva(id) {
+            if (!confirm('Tem certeza que deseja cancelar esta reserva?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/booking/${id}/cancel`, {
+                    method: 'POST',
+                    headers: HEADERS
+                });
+
+                if (response.ok) {
+                    alert('Reserva cancelada com sucesso!');
+                    carregarReservas();
+                } else {
+                    alert('Erro ao cancelar reserva');
+                }
+            } catch (error) {
+                alert('Erro de conexão');
+            }
+        }
+
+        async function verDetalhes(id) {
+            document.getElementById('modalContent').innerHTML = `<p>Carregando detalhes da reserva ${id}...</p>`;
+            document.getElementById('reservaModal').style.display = 'block';
+
+            try {
+                const response = await fetch(`${API_BASE}/booking/${id}`, { headers: HEADERS });
+                const data = await response.json();
+
+                if (response.ok && data) {
+                    const html = `
+                        <p><strong>ID:</strong> ${data.id || id}</p>
+                        <p><strong>Hóspede:</strong> ${data.guest?.first_name || ''} ${data.guest?.last_name || ''}</p>
+                        <p><strong>Email:</strong> ${data.guest?.email || 'N/A'}</p>
+                        <p><strong>Telefone:</strong> ${data.guest?.phone || 'N/A'}</p>
+                        <p><strong>Check-in:</strong> ${formatDate(data.arrival_date)}</p>
+                        <p><strong>Check-out:</strong> ${formatDate(data.departure_date)}</p>
+                        <p><strong>Status:</strong> ${STATUS_NAMES[data.status] || 'N/A'}</p>
+                        <p><strong>Total:</strong> R$ ${data.total || '0,00'}</p>
+                        <p><strong>Comentários:</strong> ${data.comment || 'Nenhum'}</p>
+                    `;
+                    document.getElementById('modalContent').innerHTML = html;
+                } else {
+                    document.getElementById('modalContent').innerHTML = '<p>Erro ao carregar detalhes</p>';
+                }
+            } catch (error) {
+                document.getElementById('modalContent').innerHTML = '<p>Erro de conexão</p>';
+            }
+        }
+
+        function fecharModal() {
+            document.getElementById('reservaModal').style.display = 'none';
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            return new Date(dateString).toLocaleDateString('pt-BR');
+        }
+
+        async function filtrarReservas() {
+            const content = document.getElementById('reservasContent');
+            content.innerHTML = '<div class="loading">Filtrando reservas...</div>';
+
+            const dataInicio = document.getElementById('dataInicio').value;
+            const dataFim = document.getElementById('dataFim').value;
+            const status = document.getElementById('statusFilter').value;
+
+            try {
+                const params = new URLSearchParams();
+                
+                if (dataInicio) params.append('start_date', dataInicio);
+                if (dataFim) params.append('end_date', dataFim);
+                if (status) params.append('status', status);
+                
+                const url = `${API_BASE}/bookings${params.toString() ? '?' + params.toString() : ''}`;
+                const response = await fetch(url, { headers: HEADERS });
+                const data = await response.json();
+
+                if (response.ok && data) {
+                    const reservas = Array.isArray(data) ? data : (data.bookings || []);
+                    exibirReservas(reservas);
+                } else {
+                    content.innerHTML = '<div class="error">Erro ao filtrar reservas</div>';
+                }
+            } catch (error) {
+                content.innerHTML = '<div class="error">Erro de conexão</div>';
+            }
+        }
+
+        async function gerarRelatorio() {
+            const inicio = document.getElementById('relatorioInicio').value;
+            const fim = document.getElementById('relatorioFim').value;
+            
+            if (!inicio || !fim) {
+                alert('Selecione as datas para o relatório');
+                return;
+            }
+
+            const content = document.getElementById('relatorioContent');
+            content.innerHTML = '<div class="loading">Gerando relatório...</div>';
+
+            try {
+                const params = new URLSearchParams({
+                    start_date: inicio,
+                    end_date: fim
+                });
+
+                const response = await fetch(`${API_BASE}/bookings?${params}`, { headers: HEADERS });
+                const data = await response.json();
+
+                if (response.ok && data) {
+                    const reservas = Array.isArray(data) ? data : (data.bookings || []);
+                    
+                    const total = reservas.reduce((sum, r) => sum + (parseFloat(r.total) || 0), 0);
+                    const statusCount = {};
+                    reservas.forEach(r => {
+                        statusCount[r.status] = (statusCount[r.status] || 0) + 1;
+                    });
+
+                    let html = `
+                        <h3>Relatório: ${formatDate(inicio)} a ${formatDate(fim)}</h3>
+                        <p><strong>Total de Reservas:</strong> ${reservas.length}</p>
+                        <p><strong>Receita Total:</strong> R$ ${total.toFixed(2)}</p>
+                        <h4>Por Status:</h4>
+                        <ul>
+                    `;
+                    
+                    Object.entries(statusCount).forEach(([status, count]) => {
+                        html += `<li>${STATUS_NAMES[status]}: ${count}</li>`;
+                    });
+                    
+                    html += '</ul>';
+                    content.innerHTML = html;
+                } else {
+                    content.innerHTML = '<div class="error">Erro ao gerar relatório</div>';
+                }
+            } catch (error) {
+                content.innerHTML = '<div class="error">Erro de conexão</div>';
+            }
+        }
+
+        // Carregar dados iniciais
+        carregarReservas();
+    </script>
+</body>
+</html>

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casa Zanotto - Nova Reserva</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background: #f8f9fa; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { background: #db8b28; color: white; padding: 20px 0; text-align: center; margin-bottom: 30px; }
+        .header h1 { margin: 0; font-size: 2.5em; }
+        .form-container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 20px; }
+        .form-row { display: flex; gap: 20px; flex-wrap: wrap; }
+        .form-col { flex: 1; min-width: 250px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
+        input:focus, select:focus, textarea:focus { border-color: #db8b28; outline: none; box-shadow: 0 0 0 2px rgba(219, 139, 40, 0.2); }
+        .btn { background: #a86a1d; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 600; text-transform: uppercase; margin-right: 10px; transition: background 0.3s; }
+        .btn:hover { background: #db8b28; }
+        .room-option { border: 1px solid #ddd; padding: 20px; margin: 15px 0; border-radius: 8px; cursor: pointer; transition: all 0.3s; background: white; }
+        .room-option:hover { border-color: #db8b28; box-shadow: 0 2px 8px rgba(219, 139, 40, 0.2); }
+        .room-option.selected { border-color: #db8b28; background: #fff8f0; box-shadow: 0 2px 8px rgba(219, 139, 40, 0.3); }
+        .room-name { font-size: 18px; font-weight: 600; color: #333; margin-bottom: 8px; }
+        .room-price { font-size: 20px; font-weight: 700; color: #db8b28; margin-bottom: 10px; }
+        .room-details { font-size: 14px; color: #666; margin-top: 10px; }
+        .availability-section { margin: 30px 0; padding: 20px; background: #f8f9fa; border-radius: 8px; display: none; }
+        .guest-section { margin-top: 30px; padding-top: 30px; border-top: 2px solid #eee; }
+        .section-title { font-size: 24px; color: #333; margin-bottom: 20px; font-weight: 600; }
+        .error { color: #dc3545; margin-top: 8px; font-size: 14px; }
+        .success { color: #28a745; margin-top: 8px; font-size: 14px; }
+        .logo { text-align: center; margin-bottom: 20px; }
+        .logo img { max-width: 200px; height: auto; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="logo">
+                <img src="https://www.pousadacasazanotto.com.br/images/LOGO_POUSADA_CASA_ZANOTTO_S_FUNDO.png" alt="Casa Zanotto">
+            </div>
+            <h1>Nova Reserva</h1>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="form-container">
+            <form id="reservaForm">
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="checkin">Data Check-in:</label>
+                            <input type="date" id="checkin" name="arrival_date" required>
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="checkout">Data Check-out:</label>
+                            <input type="date" id="checkout" name="departure_date" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="adults">Quantidade de Adultos:</label>
+                            <input type="number" id="adults" name="adults" min="1" value="1" required>
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="kids">Quantidade de Crianças:</label>
+                            <input type="number" id="kids" name="kids" min="0" value="0">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="promocode">Código Promocional:</label>
+                    <input type="text" id="promocode" name="promocode" placeholder="Digite o código promocional (opcional)">
+                </div>
+                
+                <div class="form-group">
+                    <button type="button" id="checkAvailability" class="btn">Verificar Disponibilidade</button>
+                </div>
+        
+                <div id="availabilityResults" class="availability-section">
+                    <h3 class="section-title">Quartos Disponíveis</h3>
+                    <div id="roomOptions"></div>
+                </div>
+                
+                <div class="guest-section">
+                    <h3 class="section-title">Dados do Hóspede Principal</h3>
+        
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="firstName">Nome:</label>
+                                <input type="text" id="firstName" name="guest_first_name" required>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="lastName">Sobrenome:</label>
+                                <input type="text" id="lastName" name="guest_last_name">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="phone">Telefone:</label>
+                                <input type="tel" id="phone" name="guest_phone" required>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="email">E-mail:</label>
+                                <input type="email" id="email" name="guest_email">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="document">Documento:</label>
+                                <input type="text" id="document" name="guest_document">
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="documentType">Tipo de Documento:</label>
+                                <select id="documentType" name="guest_document_type">
+                                    <option value="">Selecione</option>
+                                    <option value="cpf">CPF</option>
+                                    <option value="rg">RG</option>
+                                    <option value="passport">Passaporte</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="comment">Comentários:</label>
+                        <textarea id="comment" name="comment" rows="3" placeholder="Comentários adicionais (opcional)"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn">Criar Reserva</button>
+                    </div>
+                </div>
+                
+                <div id="message"></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Preencher campos com parâmetros da URL
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('checkin')) document.getElementById('checkin').value = urlParams.get('checkin');
+        if (urlParams.get('checkout')) document.getElementById('checkout').value = urlParams.get('checkout');
+        if (urlParams.get('adults')) document.getElementById('adults').value = urlParams.get('adults');
+        if (urlParams.get('kids')) document.getElementById('kids').value = urlParams.get('kids');
+        if (urlParams.get('promocode')) document.getElementById('promocode').value = urlParams.get('promocode');
+
+        let selectedRoom = null;
+
+        // Verificar disponibilidade
+        document.getElementById('checkAvailability').addEventListener('click', async function() {
+            const checkin = document.getElementById('checkin').value;
+            const checkout = document.getElementById('checkout').value;
+            const adults = document.getElementById('adults').value;
+            const kids = document.getElementById('kids').value;
+            
+            if (!checkin || !checkout || !adults) {
+                alert('Preencha as datas e quantidade de adultos');
+                return;
+            }
+
+            const params = new URLSearchParams({
+                arrival_date: checkin,
+                departure_date: checkout,
+                adults: adults,
+                kids: kids || 0
+            });
+
+            try {
+                const response = await fetch(`https://artaxnet.com/pms-api/v1/rooms/availability?${params}`, {
+                    headers: {
+                        'ClientId': 'client_id_960o8MMPfTi3E2PVVCZ7S0RRgCkX',
+                        'ClientSecret': 'client_secret_9605Y3wx0CNYQZdGvqh3PjH'
+                    }
+                });
+
+                const data = await response.json();
+                displayAvailability(data.rooms);
+            } catch (error) {
+                document.getElementById('message').innerHTML = `<div class="error">Erro ao verificar disponibilidade: ${error.message}</div>`;
+            }
+        });
+
+        function displayAvailability(rooms) {
+            const resultsDiv = document.getElementById('availabilityResults');
+            const optionsDiv = document.getElementById('roomOptions');
+            
+            if (!rooms || Object.keys(rooms).length === 0) {
+                optionsDiv.innerHTML = '<p>Nenhum quarto disponível para as datas selecionadas.</p>';
+                resultsDiv.style.display = 'block';
+                document.querySelector('.guest-section').style.display = 'none';
+                return;
+            }
+
+            let html = '';
+            for (const [categoryId, ratePlans] of Object.entries(rooms)) {
+                for (const [ratePlanId, room] of Object.entries(ratePlans)) {
+                    html += `
+                        <div class="room-option" onclick="selectRoom('${categoryId}', '${ratePlanId}', ${room.price})">
+                            <div class="room-name">${room.room_name}</div>
+                            <div class="room-price">R$ ${room.price}</div>
+                            <div class="room-details">
+                                <strong>Disponível:</strong> ${room.allots} quartos<br>
+                                <strong>Capacidade:</strong> ${room.capacity.adults} adultos, ${room.capacity.kids} crianças
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            
+            optionsDiv.innerHTML = html;
+            resultsDiv.style.display = 'block';
+            document.querySelector('.guest-section').style.display = 'block';
+        }
+
+        function selectRoom(categoryId, ratePlanId, price) {
+            document.querySelectorAll('.room-option').forEach(el => el.classList.remove('selected'));
+            event.target.closest('.room-option').classList.add('selected');
+            
+            selectedRoom = {
+                categoryId: categoryId,
+                ratePlanId: ratePlanId,
+                price: price
+            };
+        }
+
+        document.getElementById('reservaForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const messageDiv = document.getElementById('message');
+            
+            if (!selectedRoom) {
+                messageDiv.innerHTML = '<div class="error">Selecione um quarto disponível primeiro.</div>';
+                return;
+            }
+
+            // Preparar dados para API
+            const roomUnits = {};
+            roomUnits[selectedRoom.categoryId] = {
+                price: selectedRoom.price,
+                adults: parseInt(formData.get('adults')),
+                kids: parseInt(formData.get('kids')),
+                guests: [{
+                    first_name: formData.get('guest_first_name'),
+                    last_name: formData.get('guest_last_name'),
+                    document: formData.get('guest_document'),
+                    document_type: formData.get('guest_document_type'),
+                    phone: formData.get('guest_phone'),
+                    email: formData.get('guest_email')
+                }]
+            };
+
+            const bookingData = {
+                arrival_date: formData.get('arrival_date'),
+                departure_date: formData.get('departure_date'),
+                rateplan_id: parseInt(selectedRoom.ratePlanId),
+                comment: formData.get('comment'),
+                guest: {
+                    first_name: formData.get('guest_first_name'),
+                    last_name: formData.get('guest_last_name'),
+                    document: formData.get('guest_document'),
+                    document_type: formData.get('guest_document_type'),
+                    phone: formData.get('guest_phone'),
+                    email: formData.get('guest_email'),
+                    type: 'guest'
+                },
+                room_units: roomUnits
+            };
+
+            try {
+                const response = await fetch('https://artaxnet.com/pms-api/v1/booking/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ClientId': 'client_id_960o8MMPfTi3E2PVVCZ7S0RRgCkX',
+                        'ClientSecret': 'client_secret_9605Y3wx0CNYQZdGvqh3PjH'
+                    },
+                    body: JSON.stringify(bookingData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    const statusText = result.status === 1 ? 'Pré-Reserva' : 'Confirmada';
+                    messageDiv.innerHTML = `<div class="success">Reserva criada com sucesso!<br>ID: ${result.booking_id}<br>Status: ${statusText}</div>`;
+                    this.reset();
+                    selectedRoom = null;
+                } else {
+                    messageDiv.innerHTML = `<div class="error">Erro: ${result.error}</div>`;
+                }
+            } catch (error) {
+                messageDiv.innerHTML = `<div class="error">Erro de conexão: ${error.message}</div>`;
+            }
+        });
+    </script>
+</body>
+</html>
