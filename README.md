@@ -74,7 +74,8 @@ railway up
 
 ### 5. Configurar Domínio
 - Railway Dashboard → Settings → Domains
-- Adicionar domínio customizado se necessário
+- URL: `motor-casazanotto-production.up.railway.app`
+- Porta: 8080
 
 ## Credenciais API
 - ClientId: `client_id_960o8MMPfTi3E2PVVCZ7S0RRgCkX`
