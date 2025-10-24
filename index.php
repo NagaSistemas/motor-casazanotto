@@ -1,4 +1,4 @@
 <?php
-header('Location: /reserva.html');
+header('Location: /index.html');
 exit;
 ?>

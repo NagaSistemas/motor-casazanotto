@@ -5,6 +5,6 @@
   },
   "deploy": {
     "startCommand": "php -S 0.0.0.0:8080",
-    "healthcheckPath": "/reserva.html"
+    "healthcheckPath": "/index.html"
   }
 }
